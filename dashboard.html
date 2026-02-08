@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Suivi Valentin</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #d63384; text-align: center; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .status-open { color: #f39c12; font-weight: bold; }
+        .status-yes { color: #27ae60; font-weight: bold; text-transform: uppercase; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #ffcad4; color: #d63384; }
+        .refresh-tag { font-size: 0.8em; color: #888; text-align: center; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💖 Mon Suivi de Valentin</h1>
+    <p class="refresh-tag">Mise à jour en temps réel activée</p>
+
+    <div class="card">
+        <h2>Dernières Réponses (OUI)</h2>
+        <table id="table-reponses">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Heure</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody id="body-reponses"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Historique des Ouvertures</h2>
+        <table id="table-visites">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Heure</th>
+                </tr>
+            </thead>
+            <tbody id="body-visites"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 1. TA CONFIGURATION (La même que pour index.html)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAH9V4-Kgs5ZPT1Iz2A9cSh_SjxwqlLWWA",
+        authDomain: "valentin-5c085.firebaseapp.com",
+        databaseURL: "https://valentin-5c085-default-rtdb.firebaseio.com",
+        projectId: "valentin-5c085",
+        storageBucket: "valentin-5c085.firebasestorage.app",
+        messagingSenderId: "976038117625",
+        appId: "1:976038117625:web:5b7719a203750a28f32228"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // 2. ÉCOUTER LES RÉPONSES (OUI)
+    database.ref('reponses').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const tbody = document.getElementById('body-reponses');
+        tbody.innerHTML = ""; // Vider le tableau avant de remplir
+
+        if(data) {
+            Object.keys(data).forEach(nom => {
+                const row = `<tr>
+                    <td><strong>${nom}</strong></td>
+                    <td>${data[nom].date}</td>
+                    <td class="status-yes">${data[nom].reponse}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+    });
+
+    // 3. ÉCOUTER LES VISITES (OUVERTURE DU LIEN)
+    database.ref('visites').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const tbody = document.getElementById('body-visites');
+        tbody.innerHTML = "";
+
+        if(data) {
+            Object.keys(data).forEach(nom => {
+                // On récupère la dernière visite de la liste
+                const visitesDuUser = Object.values(data[nom]);
+                const derniereVisite = visitesDuUser[visitesDuUser.length - 1];
+                
+                const row = `<tr>
+                    <td>${nom}</td>
+                    <td>${derniereVisite.date}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
