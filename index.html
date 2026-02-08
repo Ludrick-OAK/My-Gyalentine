@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veux-tu être ma Valentine ?</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+
+    <style>
+        body { 
+            text-align: center; 
+            font-family: 'Arial', sans-serif; 
+            background-color: #ffeef0; 
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Empêche tout défilement */
+        }
+        h1 { color: #d63384; margin-bottom: 30px; padding: 0 20px; }
+        .buttons { position: relative; width: 100%; height: 100px; }
+        button { 
+            padding: 15px 30px; 
+            font-size: 20px; 
+            border-radius: 50px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        #yes { background-color: #ff4d6d; color: white; z-index: 10; }
+        #no { 
+            background-color: #6c757d; 
+            color: white; 
+            position: fixed; /* Reste par rapport à l'écran */
+            transition: all 0.2s ease;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title">Veux-tu être ma Valentine ? ❤️</h1>
+    
+    <div class="buttons">
+        <button id="yes">OUI !</button>
+        <button id="no">Non</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAH9V4-Kgs5ZPT1Iz2A9cSh_SjxwqlLWWA",
+            authDomain: "valentin-5c085.firebaseapp.com",
+            databaseURL: "https://valentin-5c085-default-rtdb.firebaseio.com",
+            projectId: "valentin-5c085",
+            storageBucket: "valentin-5c085.firebasestorage.app",
+            messagingSenderId: "976038117625",
+            appId: "1:976038117625:web:5b7719a203750a28f32228"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const guestName = urlParams.get('name') || "Mon Amour";
+        const titleElement = document.getElementById('main-title');
+        titleElement.innerText = `Veux-tu être ma Valentine, ${guestName} ? ❤️`;
+
+        database.ref('visites/' + guestName).push({
+            action: "Lien ouvert",
+            date: new Date().toLocaleString()
+        });
+
+        const noButton = document.getElementById('no');
+
+        // Placement initial du bouton NON à côté du OUI
+        noButton.style.top = "50%";
+        noButton.style.left = "55%";
+
+        const moveButton = () => {
+            // On définit une zone de sécurité de 50px des bords
+            const padding = 50;
+            const maxX = window.innerWidth - noButton.offsetWidth - padding;
+            const maxY = window.innerHeight - noButton.offsetHeight - padding;
+            
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+            
+            noButton.style.left = `${randomX}px`;
+            noButton.style.top = `${randomY}px`;
+        };
+
+        noButton.addEventListener('mouseover', moveButton);
+        noButton.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Empêche le clic sur mobile, force le saut
+            moveButton();
+        });
+
+        const yesButton = document.getElementById('yes');
+        yesButton.addEventListener('click', () => {
+            database.ref('reponses/' + guestName).set({
+                reponse: "A DIT OUI ! ❤️",
+                date: new Date().toLocaleString()
+            });
+
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff0000', '#ff69b4', '#ffffff']
+            });
+
+            titleElement.innerHTML = "YAY ! ❤️ <br> Je savais que tu dirais oui !";
+            document.querySelector('.buttons').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
